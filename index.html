@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIP Preparation and Cortisol Testing Click-Through Animation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { width: 600px; margin: 0 auto; }
+        svg { border: 1px solid #ccc; }
+        button { margin: 10px 5px; }
+        #concentration { font-size: 18px; font-weight: bold; margin-top: 10px; }
+        #controls { margin-top: 10px; }
+        #description { font-size: 14px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MIP Preparation and Cortisol Testing</h1>
+        <svg id="animation" width="600" height="400"></svg>
+        <div id="controls">
+            <button id="nextStep">Next Step</button>
+            <button id="reset">Reset</button>
+        </div>
+        <div id="status"></div>
+        <div id="description"></div>
+        <div id="concentration"></div>
+    </div>
+    <script>
+        const svg = d3.select("#animation");
+        const width = +svg.attr("width");
+        const height = +svg.attr("height");
+        let currentStep = -1;
+        let templates;
+
+        function createPolymerMatrix() {
+            svg.append("rect")
+               .attr("class", "polymer")
+               .attr("x", 50)
+               .attr("y", 50)
+               .attr("width", 500)
+               .attr("height", 300)
+               .attr("fill", "#e6e6e6")
+               .attr("stroke", "#333");
+            
+            svg.append("text")
+               .attr("class", "initial-text")
+               .attr("x", 300)
+               .attr("y", 30)
+               .attr("text-anchor", "middle")
+               .attr("font-size", "16px")
+               .attr("fill", "#333")
+               .text("Unfunctionalized Screen-Printed Electrode");
+
+            svg.append("text")
+               .attr("class", "initial-text")
+               .attr("x", 300)
+               .attr("y", 380)
+               .attr("text-anchor", "middle")
+               .attr("font-size", "14px")
+               .attr("fill", "#666")
+               .text("The electrode surface is ready for MIP functionalization");
+        }
+
+        function createTemplates() {
+            templates = d3.range(20).map(() => ({
+                x: Math.random() * 460 + 70,
+                y: Math.random() * 260 + 70
+            }));
+
+            const templateGroups = svg.selectAll("g.template")
+                .data(templates)
+                .enter()
+                .append("g")
+                .attr("class", "template")
+                .attr("transform", d => `translate(${d.x}, ${d.y})`);
+
+            templateGroups.append("circle")
+                .attr("r", 15)
+                .attr("fill", "#ff9999")
+                .attr("stroke", "#ff0000");
+
+            templateGroups.append("text")
+                .text("⬢")
+                .attr("font-size", 20)
+                .attr("fill", "#ff0000")
+                .attr("text-anchor", "middle")
+                .attr("dominant-baseline", "middle");
+        }
+
+        function initializeAnimation() {
+            createPolymerMatrix();
+            d3.select("#status").text("Unfunctionalized Screen-Printed Electrode");
+            d3.select("#description").text("This is the starting point of our MIP preparation process. The screen-printed electrode is currently unfunctionalized, providing a clean surface for the subsequent steps of creating a Molecularly Imprinted Polymer (MIP) for cortisol detection.");
+            d3.select("#nextStep").property("disabled", false);
+        }
+
+        function step1() {
+            svg.selectAll(".initial-text").remove();
+            createTemplates();
+            d3.select("#status").text("Step 1: Polymer matrix with embedded template molecules");
+            d3.select("#description").text("Template molecules (representing cortisol) are mixed with functional monomers and cross-linkers. This mixture is applied to the electrode surface, forming the basis of our Molecularly Imprinted Polymer.");
+        }
+
+        function step2() {
+            d3.select("#status").text("Step 2: Introducing washing solution");
+            d3.select("#description").text("A washing solution is introduced to remove the template molecules, leaving behind cavities that are complementary in shape to the cortisol molecules.");
+            svg.append("rect")
+               .attr("class", "wash")
+               .attr("x", 0)
+               .attr("y", height)
+               .attr("width", width)
+               .attr("height", 0)
+               .attr("fill", "#add8e6")
+               .attr("opacity", 0.5)
+               .transition()
+               .duration(2000)
+               .attr("y", 0)
+               .attr("height", height);
+        }
+
+        function step3() {
+            d3.select("#status").text("Step 3: Washing out template molecules");
+            d3.select("#description").text("The washing solution removes the template molecules, leaving behind cavities that are specific in shape and size to the cortisol molecules.");
+            svg.selectAll("g.template")
+               .transition()
+               .duration(3000)
+               .attr("transform", d => `translate(${d.x}, ${height + 50})`)
+               .remove();
+
+            svg.selectAll("circle.cavity")
+               .data(templates)
+               .enter()
+               .append("circle")
+               .attr("class", "cavity")
+               .attr("cx", d => d.x)
+               .attr("cy", d => d.y)
+               .attr("r", 15)
+               .attr("fill", "none")
+               .attr("stroke", "#999")
+               .attr("stroke-dasharray", "3,3")
+               .attr("opacity", 0)
+               .transition()
+               .delay(1500)
+               .duration(1500)
+               .attr("opacity", 1);
+        }
+
+        function step4() {
+            d3.select("#status").text("Step 4: Removing washing solution");
+            d3.select("#description").text("The washing solution is removed, leaving behind a dry MIP with cortisol-shaped cavities ready for use in sensing applications.");
+            svg.select(".wash")
+               .transition()
+               .duration(2000)
+               .attr("y", height)
+               .attr("height", 0)
+               .remove();
+        }
+
+        function step5() {
+            d3.select("#status").text("Step 5: Saliva sample flowing through MIP, capturing cortisol");
+            d3.select("#description").text("A saliva sample containing cortisol and other molecules flows through the MIP. The cortisol molecules are selectively captured by the cavities, while other molecules pass through.");
+            
+            svg.append("rect")
+               .attr("class", "saliva")
+               .attr("x", 0)
+               .attr("y", 0)
+               .attr("width", width)
+               .attr("height", height)
+               .attr("fill", "#FFFACD")
+               .attr("opacity", 0)
+               .transition()
+               .duration(2000)
+               .attr("opacity", 0.3);
+
+            const molecules = d3.range(30).map(() => ({
+                x: Math.random() * 460 + 70,
+                y: -20,
+                type: Math.random() < 0.3 ? "cortisol" : "other"
+            }));
+
+            let capturedCortisol = 0;
+
+            const moleculeGroups = svg.selectAll("g.molecule")
+                .data(molecules)
+                .enter()
+                .append("g")
+                .attr("class", "molecule")
+                .attr("transform", d => `translate(${d.x}, ${d.y})`);
+
+            moleculeGroups.append("text")
+                .text(d => d.type === "cortisol" ? "⬢" : ["▲", "■"][Math.floor(Math.random() * 2)])
+                .attr("font-size", 20)
+                .attr("fill", d => d.type === "cortisol" ? "#ff0000" : ["#00ff00", "#0000ff"][Math.floor(Math.random() * 2)])
+                .attr("text-anchor", "middle")
+                .attr("dominant-baseline", "middle");
+
+            moleculeGroups.transition()
+                .duration(5000)
+                .attr("transform", function(d) {
+                    if (d.type === "cortisol") {
+                        const cavity = d3.select(svg.selectAll("circle.cavity").nodes()[Math.floor(Math.random() * svg.selectAll("circle.cavity").size())]);
+                        capturedCortisol++;
+                        return `translate(${cavity.attr("cx")}, ${cavity.attr("cy")})`;
+                    } else {
+                        return `translate(${d.x}, ${height + 20})`;
+                    }
+                })
+                .on("end", function(d) {
+                    if (d.type !== "cortisol") {
+                        d3.select(this).remove();
+                    }
+                });
+
+            setTimeout(() => {
+                const totalMolecules = molecules.length;
+                const cortisolPercentage = (capturedCortisol / totalMolecules) * 100;
+                const concentration = (cortisolPercentage * 0.5).toFixed(2); // Assuming 100% = 50 ng/mL
+                d3.select("#concentration").html(`Estimated Cortisol Concentration: ${concentration} ng/mL`);
+                d3.select("#description").text(`Test complete. The MIP has captured ${capturedCortisol} cortisol molecules out of ${totalMolecules} total molecules, estimating a cortisol concentration of ${concentration} ng/mL in the sample.`);
+                d3.select("#nextStep").property("disabled", true);
+            }, 7000);
+        }
+
+        function nextStep() {
+            currentStep++;
+            switch(currentStep) {
+                case 0: step1(); break;
+                case 1: step2(); break;
+                case 2: step3(); break;
+                case 3: step4(); break;
+                case 4: step5(); break;
+            }
+        }
+
+        function resetAnimation() {
+            currentStep = -1;
+            svg.selectAll("*").remove();
+            d3.select("#concentration").html("");
+            d3.select("#status").text("");
+            d3.select("#description").text("");
+            d3.select("#nextStep").property("disabled", false);
+            initializeAnimation();
+        }
+
+        d3.select("#nextStep").on("click", nextStep);
+        d3.select("#reset").on("click", resetAnimation);
+
+        // Initial setup
+        initializeAnimation();
+    </script>
+</body>
+</html>
